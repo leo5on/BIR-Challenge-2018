@@ -1,0 +1,89 @@
+alterei no detection distance
+	0.065
+parar o robô antes de começar o desvio de obstáculo
+	velLeft=0
+        velRight=0
+	depois da detecção lateral
+
+parar quando detectar especificamente o cilindrão
+	if (sim.checkProximitySensor(proxSens[3],obstacle)==1 or sim.checkProximitySensor(proxSens[4],obstacle)==1) then
+                        velLeft=0
+                        velRight=0
+	
+
+Integração camera + ROS:
+	Objetos de cena renderizáveis
+	PassiveVisionSensor
+	Child script na camera
+		criar os topicos do ros e os pub e sub
+	
+Detecção da linha no piso com o OpenCV
+		rosrun beginner_tutorials ROS_OpenCV.py
+
+
+Desviar das paredes:
+	if (ps2wl==1 or ps3wl==1 or ps4wl==1 or ps5wl==1) then
+                        velLeft=0
+                        velRight=0
+                        totalTime=sim.getSimulationTime()
+                        now = totalTime
+                        interval= 3.5
+                        while (now-totalTime<(interval)) do
+                            velLeft = -1
+                            velRight= 1
+                            sim.setJointTargetVelocity(leftMotor,velLeft)
+                            sim.setJointTargetVelocity(rightMotor,velRight)
+                            now=sim.getSimulationTime()
+                            sim.switchThread()
+                        end
+
+-- Functions and logic for the ePuck to get back to the line after avoiding any obstacle in any position
+        if lightSens and ((lightSens[1]<0.5) and (lightSens[2]<0.5) and (lightSens[3]<0.5)) then   
+            sensDist6=sim.readProximitySensor(proxSens[6]) 
+            sensDist1=sim.readProximitySensor(proxSens[1]) 
+            if(sensDist1 > 0) then
+                totalTime=sim.getSimulationTime()
+                now = totalTime
+                interval= 0.8
+                while (now-totalTime<(interval)) do
+                    velLeft = 1
+                    velRight= -1 
+                    sim.setJointTargetVelocity(leftMotor,velLeft)
+                    sim.setJointTargetVelocity(rightMotor,velRight)
+                    now=sim.getSimulationTime()
+                    sim.switchThread()
+                end 
+            end
+            if (sensDist6 > 0) then
+               totalTime=sim.getSimulationTime()
+               now = totalTime
+               interval= 0.8
+               while (now-totalTime<(interval)) do
+                   velLeft = -1
+                   velRight= 1 
+                   sim.setJointTargetVelocity(leftMotor,velLeft)
+                   sim.setJointTargetVelocity(rightMotor,velRight)
+                   now=sim.getSimulationTime()
+                   sim.switchThread()
+               end 
+            end
+        end
+
+
+-- Functions and logic to recognize the line when walking astray
+        if lightSens and ((lightSens[1]<0.5) and (lightSens[2]<0.5) and (lightSens[3]<0.5)) then
+            if proxSens and (sensorRead1 == 0) and ((sensorRead2 == 0) and (sensorRead3 == 0) and (sensorRead4 == 0) and (sensorRead5 == 0) and (sensorRead6 == 0)) then
+                totalTime=sim.getSimulationTime()
+                now = totalTime
+                interval= 2
+                while (now-totalTime<(interval)) do
+                    -- After recognizing the line, the ePuck must rotate to start following the line
+                    velLeft = -1
+                    velRight= 1 
+                    sim.setJointTargetVelocity(leftMotor,velLeft)
+                    sim.setJointTargetVelocity(rightMotor,velRight)
+                    now=sim.getSimulationTime()
+                    sim.switchThread()
+                end        
+            end
+        end
